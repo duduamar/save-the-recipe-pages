@@ -33,8 +33,10 @@ gh repo create "$REPO_NAME" --public --description "Privacy policy + support pag
 OWNER="$(gh api user -q .login)"
 
 # Enable GitHub Pages, serving from the root of main.
-gh api --method POST "repos/$OWNER/$REPO_NAME/pages" \
-  -f "source[branch]=main" -f "source[path]=/" >/dev/null 2>&1 || \
+# (Nested JSON must go through --input; gh api's flat -f flag can't express
+# a nested "source" object.)
+printf '{"source":{"branch":"main","path":"/"}}' | \
+  gh api --method POST "repos/$OWNER/$REPO_NAME/pages" --input - >/dev/null 2>&1 || \
   echo "Note: Pages may already be enabled, or needs a minute to allow API access — check Settings > Pages on github.com if the URLs below don't load yet."
 
 echo ""
